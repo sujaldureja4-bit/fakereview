@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, jsonify
 import pickle
 import string
 from nltk.corpus import stopwords
-
+import os
 app = Flask(__name__)
 
 # Load model
@@ -33,5 +33,8 @@ def predict():
 
     return jsonify({"result": result})
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
