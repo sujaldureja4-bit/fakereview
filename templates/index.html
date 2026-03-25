@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fake Review Detector</title>
+
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Outfit', sans-serif; }
+
+.app-bg { background:#0a0a1a; min-height:100%; }
+
+.glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+}
+
+.glass-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    color: #e2e8f0;
+}
+
+.analyze-btn {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7);
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+}
+
+.result-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+}
+/* Smooth Loader */
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top: 4px solid #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Spin Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body class="h-full">
+<div class="app-bg flex flex-col items-center justify-start px-4 py-10">
+
+<!-- HEADER -->
+<div class="text-center mb-10">
+    <h1 class="text-4xl font-bold text-white">Fake Review Detector</h1>
+    <p class="text-gray-400 mt-2">AI-powered authenticity detection</p>
+</div>
+
+<!-- INPUT -->
+<div class="glass-card w-full max-w-2xl p-6 mb-6">
+<form>
+    <textarea 
+        id="review-input" 
+        name="review"
+        class="glass-input w-full p-4 text-white"
+        rows="5"
+        placeholder="Paste a review here..."></textarea>
+
+    <div class="flex justify-between mt-4">
+        <span id="char-count" class="text-gray-500 text-sm">0 characters</span>
+
+        <button 
+            type="button" 
+            id="analyze-btn"
+            onclick="analyzeReview()"
+            class="analyze-btn px-6 py-2">
+            Analyze Review
+        </button>
+    </div>
+</form>
+</div>
+
+<!-- LOADING -->
+<div id="loading-state" class="hidden flex flex-col items-center justify-center mt-6">
+    
+    <!-- Loader Circle -->
+    <div class="loader mb-4"></div>
+
+    <!-- Text -->
+    <p class="text-gray-400 text-sm animate-pulse">Analyzing with AI...</p>
+
+</div>
+
+<!-- RESULT -->
+<div id="result-area" class="w-full max-w-2xl"></div>
+<div id="result-area" class="hidden w-full max-w-2xl"></div><!-- Info Section -->
+    <div class="w-full max-w-4xl mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"><!-- How It Works -->
+     <div class="glass-card p-6 md:p-7">
+      <div class="flex items-center gap-2 mb-4"><i data-lucide="brain" style="width:20px;height:20px;color:#6366f1"></i>
+       <h3 class="text-lg font-semibold" style="color:#e2e8f0">How It Works</h3>
+      </div>
+      <p class="text-sm mb-4" style="color:rgba(255,255,255,0.6)">Our AI detector analyzes multiple linguistic patterns:</p>
+      <ul class="text-xs space-y-2" style="color:rgba(255,255,255,0.5)">
+       <li class="flex gap-2"><span style="color:#6366f1">•</span> <span>Sentiment extremes and superlatives</span></li>
+       <li class="flex gap-2"><span style="color:#8b5cf6">•</span> <span>Excessive punctuation &amp; capitalization</span></li>
+       <li class="flex gap-2"><span style="color:#a855f7">•</span> <span>Vocabulary diversity &amp; complexity</span></li>
+       <li class="flex gap-2"><span style="color:#ec4899">•</span> <span>Review length &amp; structure patterns</span></li>
+       <li class="flex gap-2"><span style="color:#06b6d4">•</span> <span>Generic praise vs. specific details</span></li>
+      </ul>
+     </div><!-- About This Tool -->
+     <div class="glass-card p-6 md:p-7">
+      <div class="flex items-center gap-2 mb-4"><i data-lucide="info" style="width:20px;height:20px;color:#ec4899"></i>
+       <h3 class="text-lg font-semibold" style="color:#e2e8f0">About This Tool</h3>
+      </div>
+      <p class="text-sm" style="color:rgba(255,255,255,0.6)">This fake review detector uses advanced pattern recognition to identify potentially inauthentic product reviews. It's designed to help consumers make informed purchasing decisions by flagging suspicious reviews that may be artificially generated, paid endorsements, or competitor sabotage.</p>
+     </div>
+    </div><!-- Characteristics Grid -->
+    <div class="w-full max-w-4xl mb-8">
+     <h2 class="text-2xl font-bold mb-6 text-center" style="color:#e2e8f0">Fake vs. Real Reviews</h2>
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><!-- Fake Reviews -->
+      <div class="glass-card p-6 md:p-7 border-l-4" style="border-left-color:#ef4444">
+       <div class="flex items-center gap-2 mb-5"><i data-lucide="alert-triangle" style="width:24px;height:24px;color:#ef4444"></i>
+        <h3 class="text-xl font-semibold" style="color:#fca5a5">Signs of Fake Reviews</h3>
+       </div>
+       <ul class="space-y-3 text-sm" style="color:rgba(255,255,255,0.6)">
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Extreme superlatives:</span> "BEST PRODUCT EVER!!!"</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Excessive punctuation:</span> Multiple exclamation marks or question marks</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">ALL CAPS sections:</span> Random capitalization throughout text</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Generic praise:</span> No specific product details or personal experience</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Very short:</span> One or two sentences, no substance</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Suspicious timing:</span> Multiple similar reviews posted within hours</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">External links:</span> URLs directing to other websites</span></li>
+        <li class="flex gap-3"><span style="color:#ef4444;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Poor vocabulary:</span> Repetitive words, lack of complexity</span></li>
+       </ul>
+      </div><!-- Real Reviews -->
+      <div class="glass-card p-6 md:p-7 border-l-4" style="border-left-color:#10b981">
+       <div class="flex items-center gap-2 mb-5"><i data-lucide="check-circle" style="width:24px;height:24px;color:#10b981"></i>
+        <h3 class="text-xl font-semibold" style="color:#86efac">Signs of Genuine Reviews</h3>
+       </div>
+       <ul class="space-y-3 text-sm" style="color:rgba(255,255,255,0.6)">
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Specific details:</span> Mentions actual product features or personal experience</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Balanced tone:</span> Mix of pros and cons, not entirely one-sided</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Normal punctuation:</span> Standard use of periods, commas, and occasional emphasis</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Natural language:</span> Conversational tone with varied vocabulary</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Adequate length:</span> Detailed explanation of use case and outcomes</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Personal context:</span> References to when or how the product was used</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">Honest assessment:</span> Realistic star ratings that match the review text</span></li>
+        <li class="flex gap-3"><span style="color:#10b981;font-weight:600">✓</span> <span><span style="color:#e2e8f0">No promotional content:</span> Focus on product experience, not marketing</span></li>
+       </ul>
+      </div>
+     </div>
+    </div><!-- Footer -->
+    <p class="text-xs mt-12 mb-4" style="color:rgba(255,255,255,0.15)">For demonstration purposes only. Results are based on pattern analysis and should not be considered definitive.</p>
+   </div>
+  </div>
+</div>
+
+<script>
+const textarea = document.getElementById('review-input');
+const charCount = document.getElementById('char-count');
+
+textarea.addEventListener('input', () => {
+    charCount.textContent = textarea.value.length + " characters";
+});
+
+function analyzeReview() {
+    const text = textarea.value.trim();
+
+    if (!text) {
+        alert("Enter a review first!");
+        return;
+    }
+
+    const btn = document.getElementById('analyze-btn');
+    btn.disabled = true;
+
+    const loader = document.getElementById('loading-state');
+    loader.classList.remove('hidden');
+
+    const startTime = Date.now(); // track time
+
+    fetch("/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "review=" + encodeURIComponent(text)
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        const elapsed = Date.now() - startTime;
+        const remaining = 2500 - elapsed;
+
+        setTimeout(() => {
+            document.getElementById("result-area").innerHTML = `
+                <div class="result-card p-6 text-center">
+                    <h2 class="text-xl font-bold text-white">
+                        ${data.result}
+                    </h2>
+                </div>
+            `;
+        }, remaining > 0 ? remaining : 0);
+
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error connecting to AI");
+    })
+    .finally(() => {
+        setTimeout(() => {
+            btn.disabled = false;
+            loader.classList.add('hidden');
+        }, 2500);
+    });
+}
+</script>
+
+</body>
+</html>
